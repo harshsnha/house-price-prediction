@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>House Price Predictor</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; background: #eef1f6; color: #1f2937; }
+    header { background: #1e3a8a; color: #fff; padding: 22px 16px; text-align: center; }
+    header h1 { margin: 0; font-size: 24px; }
+    header p { margin: 6px 0 0; font-size: 14px; opacity: .85; }
+    main { max-width: 560px; margin: 28px auto; padding: 0 16px; }
+    .card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,.07); }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .full { grid-column: 1 / -1; }
+    label { display: block; font-size: 13px; margin-bottom: 4px; color: #4b5563; }
+    input, select { width: 100%; padding: 9px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
+    input:focus, select:focus { outline: 2px solid #93c5fd; border-color: #3b82f6; }
+    button { width: 100%; margin-top: 20px; padding: 12px; background: #2563eb; color: #fff; border: 0; border-radius: 8px; font-size: 16px; cursor: pointer; }
+    button:hover { background: #1d4ed8; }
+    #result { margin-top: 20px; padding: 16px; border-radius: 8px; text-align: center; background: #ecfdf5; display: none; }
+    #result small { display: block; color: #047857; font-size: 13px; }
+    #result strong { font-size: 28px; color: #065f46; }
+    #result.error { background: #fef2f2; }
+    #result.error strong { font-size: 15px; color: #b91c1c; }
+    footer { text-align: center; font-size: 12px; color: #6b7280; margin: 18px 0 30px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>House Price Predictor</h1>
+    <p>Enter the property details and get an estimated price</p>
+  </header>
+
+  <main>
+    <div class="card">
+      <div class="grid">
+        <div class="full">
+          <label for="city">City</label>
+          <select id="city"></select>
+        </div>
+        <div><label for="area_sqft">Area (sqft)</label><input id="area_sqft" type="number" min="100" value="1200"></div>
+        <div><label for="age_years">Age (years)</label><input id="age_years" type="number" min="0" value="5"></div>
+        <div><label for="bedrooms">Bedrooms</label><input id="bedrooms" type="number" min="1" value="3"></div>
+        <div><label for="bathrooms">Bathrooms</label><input id="bathrooms" type="number" min="1" value="2"></div>
+        <div><label for="location_score">Location score (1-10)</label><input id="location_score" type="number" min="1" max="10" value="7"></div>
+        <div><label for="parking">Parking spots</label><input id="parking" type="number" min="0" value="1"></div>
+      </div>
+      <button id="btn">Predict price</button>
+      <div id="result"></div>
+    </div>
+    <footer id="info"></footer>
+  </main>
+
+  <script>
+    const numeric = ["area_sqft", "bedrooms", "bathrooms", "age_years", "location_score", "parking"];
+    const result = document.getElementById("result");
+
+    fetch("/meta")
+      .then(r => r.json())
+      .then(m => {
+        document.getElementById("city").innerHTML = m.cities.map(c => `<option>${c}</option>`).join("");
+        document.getElementById("info").textContent = `Model: ${m.model} | R² on test data: ${m.r2}`;
+      })
+      .catch(() => { document.getElementById("info").textContent = "Could not reach the server."; });
+
+    document.getElementById("btn").addEventListener("click", async () => {
+      const payload = { city: document.getElementById("city").value };
+      numeric.forEach(id => payload[id] = document.getElementById(id).value);
+
+      try {
+        const res = await fetch("/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        result.style.display = "block";
+        if (!res.ok) {
+          result.className = "error";
+          result.innerHTML = `<strong>${data.error}</strong>`;
+          return;
+        }
+        result.className = "";
+        result.innerHTML = `<small>Estimated price</small><strong>₹ ${data.predicted_price.toLocaleString("en-IN")}</strong>`;
+      } catch (e) {
+        result.style.display = "block";
+        result.className = "error";
+        result.innerHTML = "<strong>Server not responding</strong>";
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+{
+  "best_model": "Gradient Boosting",
+  "rows": 1500,
+  "train_rows": 1200,
+  "test_rows": 300,
+  "results": [
+    {
+      "model": "Gradient Boosting",
+      "r2": 0.9814,
+      "cv_r2": 0.961,
+      "mae": 551906,
+      "rmse": 715974
+    },
+    {
+      "model": "Random Forest",
+      "r2": 0.9735,
+      "cv_r2": 0.9506,
+      "mae": 630541,
+      "rmse": 854639
+    },
+    {
+      "model": "Linear Regression",
+      "r2": 0.9429,
+      "cv_r2": 0.9224,
+      "mae": 961331,
+      "rmse": 1254247
+    },
+    {
+      "model": "Lasso",
+      "r2": 0.9429,
+      "cv_r2": 0.9224,
+      "mae": 961331,
+      "rmse": 1254247
+    },
+    {
+      "model": "Ridge",
+      "r2": 0.9429,
+      "cv_r2": 0.9224,
+      "mae": 961734,
+      "rmse": 1254078
+    }
+  ],
+  "importance": {
+    "area_sqft": 1.1163,
+    "city": 0.8596,
+    "location_score": 0.0967,
+    "bedrooms": 0.0103,
+    "age_years": 0.0089,
+    "parking": 0.0013,
+    "bathrooms": 0.0009
+  }
+}
